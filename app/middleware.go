@@ -20,15 +20,15 @@ func (r *StatusRecorder) WriteHeader(status int) {
 	r.ResponseWriter.WriteHeader(status)
 }
 
-type Logger struct {
+type Observer struct {
 	handler          http.Handler
 	totalRequests    *prometheus.CounterVec
 	latencyHistogram *prometheus.HistogramVec
 }
 
-func NewLogger(mux *http.ServeMux) *Logger {
+func NewObserver(mux *http.ServeMux) *Observer {
 	mux.Handle("/metrics", promhttp.Handler())
-	logger := &Logger{
+	obs := &Observer{
 		handler: mux,
 		totalRequests: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "http_total_requests",
@@ -39,17 +39,17 @@ func NewLogger(mux *http.ServeMux) *Logger {
 			Help: "Histogram of response time for requests in seconds",
 		}, []string{"method", "route", "status"}),
 	}
-	prometheus.MustRegister(logger.totalRequests, logger.latencyHistogram)
-	return logger
+	prometheus.MustRegister(obs.totalRequests, obs.latencyHistogram)
+	return obs
 }
 
-func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (o *Observer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	recorder := &StatusRecorder{
 		ResponseWriter: w,
 		Status:         200,
 	}
-	l.handler.ServeHTTP(recorder, r)
+	o.handler.ServeHTTP(recorder, r)
 	duration := time.Since(start)
 	slog.Info("query executed",
 		slog.String("source", r.RemoteAddr),
@@ -58,6 +58,6 @@ func (l *Logger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		slog.Int("status", recorder.Status),
 		slog.Duration("duration", duration),
 	)
-	l.totalRequests.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(recorder.Status)).Inc()
-	l.latencyHistogram.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(recorder.Status)).Observe(duration.Seconds())
+	o.totalRequests.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(recorder.Status)).Inc()
+	o.latencyHistogram.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(recorder.Status)).Observe(duration.Seconds())
 }

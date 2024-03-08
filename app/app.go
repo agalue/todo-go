@@ -39,7 +39,7 @@ func (a *App) initRoutes() {
 func (a *App) Start(addr string) {
 	a.server = &http.Server{
 		Addr:    addr,
-		Handler: NewLogger(a.router),
+		Handler: NewObserver(a.router),
 	}
 
 	if err := a.db.Init(); err != nil {
