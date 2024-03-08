@@ -6,6 +6,10 @@ import (
 	"net/http"
 	"os"
 	"todo-api/app/database"
+
+	_ "todo-api/docs"
+
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
 
 type App struct {
@@ -24,12 +28,12 @@ func New(db database.TodoDB) *App {
 }
 
 func (a *App) initRoutes() {
-	a.router.HandleFunc("GET /", a.indexHandler)
 	a.router.HandleFunc("POST /api/v1/todos", a.addTodoHandler)
 	a.router.HandleFunc("GET /api/v1/todos", a.getTodosHandler)
 	a.router.HandleFunc("GET /api/v1/todos/{id}", a.getTodoHandler)
 	a.router.HandleFunc("PUT /api/v1/todos/{id}", a.updateTodoHandler)
 	a.router.HandleFunc("DELETE /api/v1/todos/{id}", a.deleteTodoHandler)
+	a.router.Handle("GET /swagger/*", httpSwagger.Handler())
 }
 
 func (a *App) Start(addr string) {

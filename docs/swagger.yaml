@@ -1,0 +1,140 @@
+definitions:
+  models.Base:
+    properties:
+      description:
+        type: string
+      priority:
+        type: integer
+      title:
+        type: string
+    type: object
+  models.Status:
+    properties:
+      completed:
+        type: boolean
+    type: object
+  models.Todo:
+    properties:
+      completed:
+        type: boolean
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      priority:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+info:
+  contact:
+    name: Alejandro Galue
+  description: A Simple TODO API based on PostgreSQL
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: TODO API
+  version: 0.0.1
+paths:
+  /api/v1/todos:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Todo'
+            type: array
+        "500":
+          description: Backend error
+      summary: Get all the TODOs
+    post:
+      parameters:
+      - description: New TODO
+        in: body
+        name: todo
+        required: true
+        schema:
+          $ref: '#/definitions/models.Base'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Todo'
+        "500":
+          description: Backend error
+      summary: Add a new TODO
+  /api/v1/todos/{id}:
+    delete:
+      parameters:
+      - description: TODO ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Todo'
+        "404":
+          description: Not found
+        "500":
+          description: Backend error
+      summary: Delete a TODO
+    get:
+      parameters:
+      - description: TODO ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Todo'
+        "404":
+          description: Not found
+        "500":
+          description: Backend error
+      summary: Get a TODO
+    put:
+      parameters:
+      - description: TODO ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: TODO Status
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/models.Status'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Todo'
+        "404":
+          description: Not found
+        "500":
+          description: Backend error
+      summary: Update a TODO
+swagger: "2.0"
