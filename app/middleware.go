@@ -39,7 +39,12 @@ func NewObserver(mux *http.ServeMux) *Observer {
 			Help: "Histogram of response time for requests in seconds",
 		}, []string{"method", "route", "status"}),
 	}
-	prometheus.MustRegister(obs.totalRequests, obs.latencyHistogram)
+	if err := prometheus.Register(obs.totalRequests); err != nil {
+		slog.Warn("cannot register", slog.String("metric", "totalRequests"))
+	}
+	if err := prometheus.Register(obs.latencyHistogram); err != nil {
+		slog.Warn("cannot register", slog.String("metric", "latencyHistogram"))
+	}
 	return obs
 }
 
