@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -18,7 +19,7 @@ func TestObserver(t *testing.T) {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	})
-	obs := NewObserver(router)
+	obs := NewObserver(context.Background(), router)
 	srv := httptest.NewServer(obs)
 	defer srv.Close()
 

@@ -37,7 +37,7 @@ func main() {
 	a := app.New(db)
 	defer a.Shutdown()
 
-	a.Start(addr)
+	a.Start(ctx, addr)
 	<-ctx.Done()
 }
 

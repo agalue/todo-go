@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -8,6 +9,10 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
 
 type StatusRecorder struct {
@@ -24,12 +29,28 @@ type Observer struct {
 	handler          http.Handler
 	totalRequests    *prometheus.CounterVec
 	latencyHistogram *prometheus.HistogramVec
+	traceProvider    *sdktrace.TracerProvider
 }
 
-func NewObserver(mux *http.ServeMux) *Observer {
+func newTraceProvider(ctx context.Context) *sdktrace.TracerProvider {
+	tp := sdktrace.NewTracerProvider()
+	otel.SetTracerProvider(tp)
+	exp, err := otlptracegrpc.New(ctx)
+	if err != nil {
+		slog.Warn("Cannot Initialize OpenTelemetry tracing via gRPC", slog.String("error", err.Error()))
+		return tp
+	}
+	bsp := sdktrace.NewBatchSpanProcessor(exp)
+	tp.RegisterSpanProcessor(bsp)
+	return tp
+}
+
+func NewObserver(ctx context.Context, mux *http.ServeMux) *Observer {
 	mux.Handle("/metrics", promhttp.Handler())
+	tp := newTraceProvider(ctx)
 	obs := &Observer{
-		handler: mux,
+		handler:       otelhttp.NewHandler(mux, "app"),
+		traceProvider: tp,
 		totalRequests: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "http_total_requests",
 			Help: "The total number of completed requests",
@@ -65,4 +86,12 @@ func (o *Observer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	)
 	o.totalRequests.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(recorder.Status)).Inc()
 	o.latencyHistogram.WithLabelValues(r.Method, r.URL.Path, strconv.Itoa(recorder.Status)).Observe(duration.Seconds())
+}
+
+func (o *Observer) Shutdown() {
+	if o.traceProvider != nil {
+		if err := o.traceProvider.Shutdown(context.Background()); err != nil {
+			slog.Error("cannot shutdown tracer", slog.String("error", err.Error()))
+		}
+	}
 }

@@ -6,6 +6,7 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/plugin/opentelemetry/tracing"
 )
 
 type DB struct {
@@ -25,6 +26,9 @@ func (db *DB) Init() error {
 		return err
 	}
 	if err = db.cli.AutoMigrate(&models.Todo{}); err != nil {
+		return err
+	}
+	if err := db.cli.Use(tracing.NewPlugin()); err != nil {
 		return err
 	}
 	return nil

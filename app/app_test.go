@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"testing"
@@ -26,6 +27,6 @@ func TestApp(t *testing.T) {
 	srv := New(db)
 	port, err := getFreePort()
 	assert.NilError(t, err)
-	srv.Start(fmt.Sprintf("localhost:%d", port))
+	srv.Start(context.Background(), fmt.Sprintf("localhost:%d", port))
 	srv.Shutdown()
 }

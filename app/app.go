@@ -21,6 +21,7 @@ type App struct {
 	db     database.TodoDB
 	router *http.ServeMux
 	server *http.Server
+	obs    *Observer
 }
 
 func New(db database.TodoDB) *App {
@@ -48,19 +49,21 @@ func (a *App) initRoutes() {
 	a.router.Handle("/", http.FileServer(http.FS(dist)))
 }
 
-func (a *App) Start(addr string) {
-	a.server = &http.Server{
-		Addr:    addr,
-		Handler: NewObserver(a.router),
-	}
-
+func (a *App) Start(ctx context.Context, listenAddress string) {
 	if err := a.db.Init(); err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
 	}
 
+	a.obs = NewObserver(ctx, a.router)
+
+	a.server = &http.Server{
+		Addr:    listenAddress,
+		Handler: a.obs,
+	}
+
 	go func() {
-		slog.Info("starting server", "address", addr)
+		slog.Info("starting server", "address", listenAddress)
 		if err := a.server.ListenAndServe(); err != nil {
 			slog.Warn(err.Error())
 			if err != http.ErrServerClosed {
@@ -71,7 +74,12 @@ func (a *App) Start(addr string) {
 }
 
 func (a *App) Shutdown() {
-	if err := a.server.Shutdown(context.Background()); err != nil {
-		slog.Warn(err.Error())
+	if a.server != nil {
+		if err := a.server.Shutdown(context.Background()); err != nil {
+			slog.Warn(err.Error())
+		}
+	}
+	if a.obs != nil {
+		a.obs.Shutdown()
 	}
 }
