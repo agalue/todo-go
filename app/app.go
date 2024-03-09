@@ -9,7 +9,7 @@ import (
 	"os"
 	"todo-api/app/database"
 
-	_ "todo-api/docs"
+	_ "todo-api/app/docs"
 
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
