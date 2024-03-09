@@ -1,6 +1,7 @@
 package database
 
 import (
+	"context"
 	"testing"
 	"todo-api/app/models"
 
@@ -30,7 +31,7 @@ func TestGetAll(t *testing.T) {
 	mock.ExpectQuery(`^SELECT .*`).WillReturnRows(rows)
 
 	db := &DB{cli: cli}
-	todos, err := db.GetAll()
+	todos, err := db.GetAll(context.Background())
 	assert.NilError(t, err)
 	assert.Equal(t, 1, len(todos))
 }
@@ -42,7 +43,7 @@ func TestGet(t *testing.T) {
 
 	db := &DB{cli: cli}
 
-	todo, err := db.Get(1)
+	todo, err := db.Get(context.Background(), 1)
 	assert.NilError(t, err)
 	assert.Equal(t, 1, todo.ID)
 }
@@ -53,7 +54,7 @@ func TestGetNotFound(t *testing.T) {
 
 	db := &DB{cli: cli}
 
-	_, err := db.Get(2)
+	_, err := db.Get(context.Background(), 2)
 	assert.Equal(t, ErrorNotFound, err)
 }
 
@@ -64,7 +65,7 @@ func TestAdd(t *testing.T) {
 
 	db := &DB{cli: cli}
 
-	todo, err := db.Add(models.Base{Title: "Testing"})
+	todo, err := db.Add(context.Background(), models.Base{Title: "Testing"})
 	assert.NilError(t, err)
 	assert.Equal(t, 1, todo.ID)
 }
@@ -76,7 +77,7 @@ func TestSetStatus(t *testing.T) {
 	mock.ExpectExec(`^UPDATE .*`).WillReturnResult(sqlmock.NewResult(1, 1))
 	db := &DB{cli: cli}
 
-	err := db.SetStatus(1, models.Status{Completed: true})
+	err := db.SetStatus(context.Background(), 1, models.Status{Completed: true})
 	assert.NilError(t, err)
 }
 
@@ -85,7 +86,7 @@ func TestSetStatusNotFound(t *testing.T) {
 	mock.ExpectQuery(`^SELECT . FROM "todos" WHERE "todos"."id" .*`).WillReturnError(gorm.ErrRecordNotFound)
 	db := &DB{cli: cli}
 
-	err := db.SetStatus(1, models.Status{Completed: true})
+	err := db.SetStatus(context.Background(), 1, models.Status{Completed: true})
 	assert.Equal(t, ErrorNotFound, err)
 }
 
@@ -96,7 +97,7 @@ func TestDelete(t *testing.T) {
 	mock.ExpectExec(`^DELETE .*`).WillReturnResult(sqlmock.NewResult(1, 1))
 	db := &DB{cli: cli}
 
-	err := db.Delete(1)
+	err := db.Delete(context.Background(), 1)
 	assert.NilError(t, err)
 }
 
@@ -105,6 +106,6 @@ func TestDeleteNotFound(t *testing.T) {
 	mock.ExpectQuery(`^SELECT . FROM "todos" WHERE "todos"."id" .*`).WillReturnError(gorm.ErrRecordNotFound)
 	db := &DB{cli: cli}
 
-	err := db.Delete(1)
+	err := db.Delete(context.Background(), 1)
 	assert.Equal(t, ErrorNotFound, err)
 }

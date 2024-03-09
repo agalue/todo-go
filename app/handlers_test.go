@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -42,7 +43,7 @@ func (db *MockDB) Init() error {
 func (db *MockDB) Shutdown() {
 }
 
-func (db *MockDB) GetAll() ([]models.Todo, error) {
+func (db *MockDB) GetAll(ctx context.Context) ([]models.Todo, error) {
 	if db.fail {
 		return nil, ErrorMockInternal
 	}
@@ -53,7 +54,7 @@ func (db *MockDB) GetAll() ([]models.Todo, error) {
 	return todos, nil
 }
 
-func (db *MockDB) Get(id int) (models.Todo, error) {
+func (db *MockDB) Get(ctx context.Context, id int) (models.Todo, error) {
 	if db.fail {
 		return models.Todo{}, ErrorMockInternal
 	}
@@ -63,7 +64,7 @@ func (db *MockDB) Get(id int) (models.Todo, error) {
 	return models.Todo{}, database.ErrorNotFound
 }
 
-func (db *MockDB) Add(base models.Base) (models.Todo, error) {
+func (db *MockDB) Add(ctx context.Context, base models.Base) (models.Todo, error) {
 	if db.fail {
 		return models.Todo{}, ErrorMockInternal
 	}
@@ -75,7 +76,7 @@ func (db *MockDB) Add(base models.Base) (models.Todo, error) {
 	return todo, nil
 }
 
-func (db *MockDB) SetStatus(id int, status models.Status) error {
+func (db *MockDB) SetStatus(ctx context.Context, id int, status models.Status) error {
 	if db.fail {
 		return ErrorMockInternal
 	}
@@ -86,11 +87,11 @@ func (db *MockDB) SetStatus(id int, status models.Status) error {
 	return database.ErrorNotFound
 }
 
-func (db *MockDB) Delete(id int) error {
+func (db *MockDB) Delete(ctx context.Context, id int) error {
 	if db.fail {
 		return ErrorMockInternal
 	}
-	if _, err := db.Get(id); err == nil {
+	if _, err := db.Get(ctx, id); err == nil {
 		db.todos = append(db.todos[:id], db.todos[id+1:]...)
 		return nil
 	}

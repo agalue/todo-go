@@ -19,7 +19,7 @@ func (a *App) addTodoHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	if todo, err := a.db.Add(base); err == nil {
+	if todo, err := a.db.Add(r.Context(), base); err == nil {
 		w.WriteHeader(http.StatusCreated)
 		sendJSON(w, todo)
 	} else {
@@ -33,7 +33,7 @@ func (a *App) addTodoHandler(w http.ResponseWriter, r *http.Request) {
 // @Failure 500 "Backend error"
 // @Router  /api/v1/todos [get]
 func (a *App) getTodosHandler(w http.ResponseWriter, r *http.Request) {
-	if todos, err := a.db.GetAll(); err == nil {
+	if todos, err := a.db.GetAll(r.Context()); err == nil {
 		sendJSON(w, todos)
 	} else {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -49,7 +49,7 @@ func (a *App) getTodosHandler(w http.ResponseWriter, r *http.Request) {
 // @Router  /api/v1/todos/{id} [get]
 func (a *App) getTodoHandler(w http.ResponseWriter, r *http.Request) {
 	if id := getID(w, r); id > 0 {
-		if todo, err := a.db.Get(id); err == nil {
+		if todo, err := a.db.Get(r.Context(), id); err == nil {
 			sendJSON(w, todo)
 		} else {
 			handleError(w, err)
@@ -72,7 +72,7 @@ func (a *App) updateTodoHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := a.db.SetStatus(id, status); err == nil {
+		if err := a.db.SetStatus(r.Context(), id, status); err == nil {
 			w.WriteHeader(http.StatusNoContent)
 		} else {
 			handleError(w, err)
@@ -89,7 +89,7 @@ func (a *App) updateTodoHandler(w http.ResponseWriter, r *http.Request) {
 // @Router  /api/v1/todos/{id} [delete]
 func (a *App) deleteTodoHandler(w http.ResponseWriter, r *http.Request) {
 	if id := getID(w, r); id > 0 {
-		if err := a.db.Delete(id); err == nil {
+		if err := a.db.Delete(r.Context(), id); err == nil {
 			w.WriteHeader(http.StatusNoContent)
 		} else {
 			handleError(w, err)

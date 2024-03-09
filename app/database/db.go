@@ -1,24 +1,12 @@
 package database
 
 import (
-	"errors"
+	"context"
 	"todo-api/app/models"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-var ErrorNotFound = errors.New("record not found")
-
-type TodoDB interface {
-	Init() error
-	Shutdown()
-	GetAll() ([]models.Todo, error)
-	Get(id int) (models.Todo, error)
-	Add(todo models.Base) (models.Todo, error)
-	SetStatus(id int, status models.Status) error
-	Delete(id int) error
-}
 
 type DB struct {
 	dsn string
@@ -45,39 +33,39 @@ func (db *DB) Init() error {
 func (db *DB) Shutdown() {
 }
 
-func (db *DB) GetAll() ([]models.Todo, error) {
+func (db *DB) GetAll(ctx context.Context) ([]models.Todo, error) {
 	todos := make([]models.Todo, 0)
-	err := db.cli.Find(&todos).Error
+	err := db.cli.WithContext(ctx).Find(&todos).Error
 	return todos, err
 }
 
-func (db *DB) Get(id int) (models.Todo, error) {
+func (db *DB) Get(ctx context.Context, id int) (models.Todo, error) {
 	todo := models.Todo{}
-	err := db.cli.First(&todo, id).Error
+	err := db.cli.WithContext(ctx).First(&todo, id).Error
 	if err == gorm.ErrRecordNotFound {
 		err = ErrorNotFound
 	}
 	return todo, err
 }
 
-func (db *DB) Add(todo models.Base) (models.Todo, error) {
+func (db *DB) Add(ctx context.Context, todo models.Base) (models.Todo, error) {
 	dbtodo := models.Todo{Base: todo}
-	err := db.cli.Create(&dbtodo).Error
+	err := db.cli.WithContext(ctx).Create(&dbtodo).Error
 	return dbtodo, err
 }
 
-func (db *DB) SetStatus(id int, status models.Status) error {
-	if todo, err := db.Get(id); err == nil {
+func (db *DB) SetStatus(ctx context.Context, id int, status models.Status) error {
+	if todo, err := db.Get(ctx, id); err == nil {
 		todo.Completed = status.Completed
-		return db.cli.Save(todo).Error
+		return db.cli.WithContext(ctx).Save(todo).Error
 	} else {
 		return err
 	}
 }
 
-func (db *DB) Delete(id int) error {
-	if todo, err := db.Get(id); err == nil {
-		return db.cli.Delete(todo).Error
+func (db *DB) Delete(ctx context.Context, id int) error {
+	if todo, err := db.Get(ctx, id); err == nil {
+		return db.cli.WithContext(ctx).Delete(todo).Error
 	} else {
 		return err
 	}
