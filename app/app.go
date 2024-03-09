@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"embed"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"os"
@@ -11,6 +13,9 @@ import (
 
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 )
+
+//go:embed web/dist
+var web embed.FS
 
 type App struct {
 	db     database.TodoDB
@@ -34,6 +39,13 @@ func (a *App) initRoutes() {
 	a.router.HandleFunc("PUT /api/v1/todos/{id}", a.updateTodoHandler)
 	a.router.HandleFunc("DELETE /api/v1/todos/{id}", a.deleteTodoHandler)
 	a.router.Handle("GET /swagger/*", httpSwagger.Handler())
+
+	dist, err := fs.Sub(web, "web/dist")
+	if err != nil {
+		slog.Error("cannot mount web interfce", slog.String("error", err.Error()))
+		return
+	}
+	a.router.Handle("/", http.FileServer(http.FS(dist)))
 }
 
 func (a *App) Start(addr string) {
