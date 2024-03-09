@@ -25,11 +25,11 @@ func main() {
 
 	addr := getEnv("API_LISTEN", ":8080")
 	dsn := fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s",
-		getEnv("PGHOST", "localhost"),
-		getEnv("PGPORT", "5432"),
-		getEnv("PGDATABASE", "todo"),
-		getEnv("PGUSER", "postgres"),
-		getEnv("PGPASSWORD", "postgres"))
+		getEnv("POSTGRES_HOST", "localhost"),
+		getEnv("POSTGRES_PORT", "5432"),
+		getEnv("POSTGRES_DB", "todo"),
+		getEnv("POSTGRES_USER", "postgres"),
+		getEnv("POSTGRES_PASSWORD", "postgres"))
 
 	db := database.New(dsn)
 	defer db.Shutdown()

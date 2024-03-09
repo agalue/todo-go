@@ -1,0 +1,81 @@
+---
+services:
+
+  prometheus:
+    image: prom/prometheus:latest
+    hostname: prometheus
+    container_name: prometheus
+    ports:
+    - 9090:9090
+    volumes:
+    - ./config/prometheus-config.yaml:/etc/prometheus/prometheus.yaml
+    command:
+    - --config.file=/etc/prometheus/prometheus.yaml
+    - --web.enable-remote-write-receiver
+    - --enable-feature=exemplar-storage
+    environment:
+      TZ: America/New_York
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://localhost:9090/-/ready || exit 1
+      interval: 10s
+      timeout: 1s
+      retries: 10
+
+  grafana:
+    image: grafana/grafana:latest
+    hostname: grafana
+    container_name: grafana
+    depends_on:
+      prometheus:
+        condition: service_healthy
+    ports:
+    - 3000:3000
+    volumes:
+    - ./config/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/config.yaml
+    environment:
+      TZ: America/New_York
+      GF_AUTH_ANONYMOUS_ENABLED: 'true'
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_ANALYTICS_REPORTING_ENABLED: 'false'
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000/login || exit 1
+      interval: 10s
+      timeout: 1s
+      retries: 10
+
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    hostname: postgres
+    ports:
+    - 5432:5432
+    environment:
+      TZ: America/New_York
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: '5432'
+      POSTGRES_DB: todo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 1s
+      retries: 10
+
+  app:
+    build:
+      context: ..
+    hostname: app
+    container_name: app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+    - 8080:8080
+    environment:
+      TZ: America/New_York
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: '5432'
+      POSTGRES_DB: todo
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
