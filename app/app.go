@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"todo-api/app/database"
+	"todo-api/app/middleware"
 
 	_ "todo-api/app/docs"
 
@@ -21,7 +22,7 @@ type App struct {
 	db     database.TodoDB
 	router *http.ServeMux
 	server *http.Server
-	obs    *Observer
+	obs    *middleware.Observer
 }
 
 func New(db database.TodoDB) *App {
@@ -55,7 +56,7 @@ func (a *App) Start(ctx context.Context, listenAddress string) {
 		os.Exit(1)
 	}
 
-	a.obs = NewObserver(ctx, a.router)
+	a.obs = middleware.NewObserver(ctx, a.router)
 
 	a.server = &http.Server{
 		Addr:    listenAddress,
