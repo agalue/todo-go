@@ -1,6 +1,24 @@
 ---
 services:
 
+  tempo:
+    image: grafana/tempo:latest
+    hostname: tempo
+    container_name: tempo
+    command:
+    - -config.file=/etc/tempo-config.yaml
+    ports:
+    - 3200:3200
+    volumes:
+    - ./config/tempo-config.yaml:/etc/tempo-config.yaml
+    environment:
+      TZ: America/New_York
+    healthcheck:
+      test: wget --quiet --tries=1 --spider http://localhost:3200/ready || exit 1
+      interval: 10s
+      timeout: 1s
+      retries: 10
+
   prometheus:
     image: prom/prometheus:latest
     hostname: prometheus
@@ -27,6 +45,8 @@ services:
     container_name: grafana
     depends_on:
       prometheus:
+        condition: service_healthy
+      tempo:
         condition: service_healthy
     ports:
     - 3000:3000
@@ -79,3 +99,5 @@ services:
       POSTGRES_DB: todo
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
+      OTEL_SERVICE_NAME: api
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317

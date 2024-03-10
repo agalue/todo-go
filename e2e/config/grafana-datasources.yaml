@@ -10,3 +10,16 @@ datasources:
   editable: true
   access: proxy
   url: http://prometheus:9090
+
+- name: Tempo
+  type: tempo
+  uid: tempo_ds
+  isDefault: false
+  editable: true
+  access: proxy
+  url: http://tempo:3200
+  jsonData:
+    serviceMap:
+      datasourceUid: prometheus_ds
+    nodeGraph:
+      enabled: true
