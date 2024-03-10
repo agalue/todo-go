@@ -32,13 +32,11 @@ func main() {
 		getEnv("POSTGRES_PASSWORD", "postgres"))
 
 	db := database.New(dsn)
-	defer db.Shutdown()
-
 	a := app.New(db)
-	defer a.Shutdown()
-
 	a.Start(ctx, addr)
 	<-ctx.Done()
+	a.Shutdown()
+	db.Shutdown()
 }
 
 func getEnv(key, fallback string) string {
