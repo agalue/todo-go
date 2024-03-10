@@ -7,7 +7,7 @@ COPY app/web .
 RUN npm run build
 
 # Build ReST API
-FROM golang:1.22-bookworm AS gobuilder
+FROM golang:1.22-alpine3.19 AS gobuilder
 WORKDIR /src
 COPY go.* .
 RUN go mod download -x
@@ -16,11 +16,9 @@ COPY --from=uibuilder /src/dist ./app/web/dist
 RUN GOOS=linux GOARCH=amd64 go build -o todo main.go
 
 # Build Target
-FROM debian:bookworm-slim
-RUN apt update && \
-    apt install tzdata ca-certificates -y && \
-    apt clean && \
-    groupadd todo && useradd -g todo -r -s /bin/bash todo
+FROM alpine:3.19
+RUN apk --no-cache add tzdata ca-certificates && \
+    addgroup -S todo && adduser -S todo -G todo
 COPY --from=gobuilder /src/todo /usr/local/bin/todo
 USER todo
 ENTRYPOINT [ "/usr/local/bin/todo" ]
