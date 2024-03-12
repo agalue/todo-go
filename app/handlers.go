@@ -1,3 +1,10 @@
+// @title TODO API
+// @version 0.0.1
+// @description A Simple TODO API based on PostgreSQL
+// @termsOfService http://swagger.io/terms/
+// @contact.name Alejandro Galue
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
 package app
 
 import (

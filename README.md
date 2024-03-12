@@ -11,7 +11,7 @@ For end-to-end testing, a Docker Compose compiles and deploys the application an
 From the project's folder, run the following
 
 ```bash
-docker run --rm -v $(pwd):/code ghcr.io/swaggo/swag:latest init --output app/docs
+docker run --rm -v $(pwd):/code ghcr.io/swaggo/swag:latest init -g app/handlers.go -o app/docs
 ```
 
 ## Development Environment
