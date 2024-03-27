@@ -52,12 +52,12 @@ func NewObserver(ctx context.Context, mux *http.ServeMux) *Observer {
 		handler:       otelhttp.NewHandler(mux, "app"),
 		traceProvider: tp,
 		totalRequests: prometheus.NewCounterVec(prometheus.CounterOpts{
-			Name: "http_total_requests",
-			Help: "The total number of completed requests",
+			Name: "http_requests_total",
+			Help: "Total number of HTTP requests",
 		}, []string{"method", "route", "status"}),
 		latencyHistogram: prometheus.NewHistogramVec(prometheus.HistogramOpts{
-			Name: "http_duration_seconds",
-			Help: "Histogram of response time for requests in seconds",
+			Name: "http_request_duration_seconds",
+			Help: "Time (in seconds) spent serving HTTP requests",
 		}, []string{"method", "route", "status"}),
 	}
 	if err := prometheus.Register(obs.totalRequests); err != nil {

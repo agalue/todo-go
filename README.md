@@ -31,3 +31,57 @@ To tear down:
 ```bash
 tilt down
 ```
+
+## Monitoring using RED Method
+
+**Rate:**
+
+```promql
+sum(
+  rate(
+    http_requests_total{}[1m]
+  )
+)
+```
+
+or
+
+```promql
+sum(
+  rate(
+    request_duration_seconds_count{}[1m]
+  )
+)
+```
+
+**Errors:**
+
+```promql
+sum(
+  rate(
+    http_requests_total{status !~ "2.."}[1m]
+  )
+)
+```
+
+or
+
+```promql
+sum(
+  rate(
+    request_duration_seconds_count{status !~ "2.."}[1m]
+  )
+)
+```
+
+**Duration:**
+
+```promql
+histogram_quantile(0.99,
+  sum(
+    rate(
+      request_duration_seconds_bucket{}[1m]
+    )
+  ) by (le)
+)
+```
