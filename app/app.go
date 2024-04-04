@@ -25,9 +25,9 @@ type App struct {
 	obs    *middleware.Observer
 }
 
-func New(db database.TodoDB) *App {
+func New() *App {
 	a := &App{
-		db:     db,
+		db:     database.New(),
 		router: http.NewServeMux(),
 	}
 	a.initRoutes()
@@ -50,10 +50,15 @@ func (a *App) initRoutes() {
 	a.router.Handle("/", http.FileServer(http.FS(dist)))
 }
 
-func (a *App) Start(ctx context.Context, listenAddress string) {
+func (a *App) Start(ctx context.Context) {
 	if err := a.db.Init(); err != nil {
 		slog.Error(err.Error())
 		os.Exit(1)
+	}
+
+	listenAddress := ":8080"
+	if value, ok := os.LookupEnv("API_LISTEN"); ok {
+		listenAddress = value
 	}
 
 	a.obs = middleware.NewObserver(ctx, a.router)
@@ -82,5 +87,8 @@ func (a *App) Shutdown() {
 	}
 	if a.obs != nil {
 		a.obs.Shutdown()
+	}
+	if a.db != nil {
+		a.db.Shutdown()
 	}
 }

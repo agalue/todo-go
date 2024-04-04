@@ -47,10 +47,9 @@ func newTraceProvider(ctx context.Context) *sdktrace.TracerProvider {
 
 func NewObserver(ctx context.Context, mux *http.ServeMux) *Observer {
 	mux.Handle("/metrics", promhttp.Handler())
-	tp := newTraceProvider(ctx)
 	obs := &Observer{
 		handler:       otelhttp.NewHandler(mux, "app"),
-		traceProvider: tp,
+		traceProvider: newTraceProvider(ctx),
 		totalRequests: prometheus.NewCounterVec(prometheus.CounterOpts{
 			Name: "http_requests_total",
 			Help: "Total number of HTTP requests",

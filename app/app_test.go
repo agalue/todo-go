@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"net/http"
+	"os"
 	"testing"
 
 	"gotest.tools/v3/assert"
@@ -21,12 +23,22 @@ func getFreePort() (port int, err error) {
 	return
 }
 
-func TestApp(t *testing.T) {
-	db := new(MockDB)
+func newMockApp(dbFail bool) (*App, *MockDB) {
+	db := &MockDB{fail: dbFail}
 	db.Init()
-	srv := New(db)
+	a := &App{
+		db:     db,
+		router: http.NewServeMux(),
+	}
+	a.initRoutes()
+	return a, db
+}
+
+func TestApp(t *testing.T) {
+	srv, _ := newMockApp(false)
 	port, err := getFreePort()
 	assert.NilError(t, err)
-	srv.Start(context.Background(), fmt.Sprintf("localhost:%d", port))
+	os.Setenv("API_LISTEN", fmt.Sprintf("localhost:%d", port))
+	srv.Start(context.Background())
 	srv.Shutdown()
 }

@@ -99,9 +99,7 @@ func (db *MockDB) Delete(ctx context.Context, id int) error {
 }
 
 func TestAddTodoHandler(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, db := newMockApp(false)
 
 	base := models.Base{
 		Title: "TestAddTodoHandler",
@@ -124,9 +122,7 @@ func TestAddTodoHandler(t *testing.T) {
 }
 
 func TestAddTodoHandlerInvalidData(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(false)
 
 	r := httptest.NewRequest(http.MethodPost, "/api/v1/todos", bytes.NewBuffer([]byte("Invalid Data")))
 	w := httptest.NewRecorder()
@@ -137,9 +133,7 @@ func TestAddTodoHandlerInvalidData(t *testing.T) {
 }
 
 func TestAddTodoHandlerServerError(t *testing.T) {
-	db := &MockDB{fail: true}
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(true)
 
 	base := models.Base{
 		Title: "TestAddTodoHandler",
@@ -156,9 +150,7 @@ func TestAddTodoHandlerServerError(t *testing.T) {
 }
 
 func TestGetTodosHandler(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(false)
 
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/todos", nil)
 	w := httptest.NewRecorder()
@@ -175,9 +167,7 @@ func TestGetTodosHandler(t *testing.T) {
 }
 
 func TestGetTodosHandlerServerError(t *testing.T) {
-	db := &MockDB{fail: true}
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(true)
 
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/todos", nil)
 	w := httptest.NewRecorder()
@@ -188,9 +178,7 @@ func TestGetTodosHandlerServerError(t *testing.T) {
 }
 
 func TestGetTodoHandler(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(false)
 
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/todos/1", nil)
 	w := httptest.NewRecorder()
@@ -208,9 +196,7 @@ func TestGetTodoHandler(t *testing.T) {
 }
 
 func TestGetTodoHandlerNotFound(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(false)
 
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/todos/10", nil)
 	w := httptest.NewRecorder()
@@ -223,9 +209,7 @@ func TestGetTodoHandlerNotFound(t *testing.T) {
 }
 
 func TestGetTodoHandlerServerError(t *testing.T) {
-	db := &MockDB{fail: true}
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(true)
 
 	r := httptest.NewRequest(http.MethodGet, "/api/v1/todos/1", nil)
 	w := httptest.NewRecorder()
@@ -237,9 +221,7 @@ func TestGetTodoHandlerServerError(t *testing.T) {
 }
 
 func TestUpdateTodosHandler(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, db := newMockApp(false)
 
 	base := models.Status{
 		Completed: true,
@@ -259,9 +241,7 @@ func TestUpdateTodosHandler(t *testing.T) {
 }
 
 func TestUpdateTodosHandlerInvalidData(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, db := newMockApp(false)
 
 	r := httptest.NewRequest(http.MethodPut, "/api/v1/todos/1", bytes.NewBuffer([]byte("Invalid Data")))
 	w := httptest.NewRecorder()
@@ -275,9 +255,7 @@ func TestUpdateTodosHandlerInvalidData(t *testing.T) {
 }
 
 func TestUpdateTodosHandlerNotFound(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(false)
 
 	base := models.Status{
 		Completed: true,
@@ -296,9 +274,7 @@ func TestUpdateTodosHandlerNotFound(t *testing.T) {
 }
 
 func TestUpdateTodosHandlerServerError(t *testing.T) {
-	db := &MockDB{fail: true}
-	db.Init()
-	srv := New(db)
+	srv, db := newMockApp(true)
 
 	base := models.Status{
 		Completed: true,
@@ -318,9 +294,7 @@ func TestUpdateTodosHandlerServerError(t *testing.T) {
 }
 
 func TestDeleteTodosHandler(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, db := newMockApp(false)
 
 	r := httptest.NewRequest(http.MethodDelete, "/api/v1/todos/1", nil)
 	w := httptest.NewRecorder()
@@ -334,9 +308,7 @@ func TestDeleteTodosHandler(t *testing.T) {
 }
 
 func TestDeleteTodosHandlerNotFound(t *testing.T) {
-	db := new(MockDB)
-	db.Init()
-	srv := New(db)
+	srv, _ := newMockApp(false)
 
 	r := httptest.NewRequest(http.MethodDelete, "/api/v1/todos/10", nil)
 	w := httptest.NewRecorder()
@@ -349,9 +321,7 @@ func TestDeleteTodosHandlerNotFound(t *testing.T) {
 }
 
 func TestDeleteTodosHandlerServerError(t *testing.T) {
-	db := &MockDB{fail: true}
-	db.Init()
-	srv := New(db)
+	srv, db := newMockApp(true)
 
 	r := httptest.NewRequest(http.MethodDelete, "/api/v1/todos/1", nil)
 	w := httptest.NewRecorder()

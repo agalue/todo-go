@@ -14,9 +14,9 @@ type DB struct {
 	cli *gorm.DB
 }
 
-func New(dsn string) TodoDB {
+func New() TodoDB {
 	return &DB{
-		dsn: dsn,
+		dsn: getDSN(),
 	}
 }
 
