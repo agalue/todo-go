@@ -49,7 +49,7 @@ or
 ```promql
 sum(
   rate(
-    request_duration_seconds_count{}[1m]
+    http_request_duration_seconds_count{}[1m]
   )
 )
 ```
@@ -69,7 +69,7 @@ or
 ```promql
 sum(
   rate(
-    request_duration_seconds_count{status !~ "2.."}[1m]
+    http_request_duration_seconds_count{status !~ "2.."}[1m]
   )
 )
 ```
@@ -80,8 +80,16 @@ sum(
 histogram_quantile(0.99,
   sum(
     rate(
-      request_duration_seconds_bucket{}[1m]
+      http_request_duration_seconds_bucket{}[1m]
     )
   ) by (le)
 )
+```
+
+## Tracing
+
+Use the following TraceQL query to look at the application traces:
+
+```traceql
+{.http.target=~"/api/v1/.*"}
 ```
